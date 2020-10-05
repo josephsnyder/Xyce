@@ -75,8 +75,30 @@ if ( CMAKE_HOST_WIN32 )
   # file(GET_RUNTIME_DEPENDENCIES...)
   # but that requires cmake 3.17.3 or higher.  For now 
   # rely on the old method but we should transition to the 
-  # new way when more recent versions of cmake are available.
-  
+  # new way when more recent versions of cmake are available
+
+  foreach(file
+    "cygwin1.dll"
+    "cygamd\-1.dll"
+    "cygblas\-0.dll"
+    "cyglapack\-0.dll"
+    "cyggcc_s-seh-1.dll"
+    "cygstdc++-6.dll"
+    "cygsuitesparseconfig-1.dll"
+    "cyggfortran-4.dll"
+    "cygquadmath-0.dll"
+    )
+
+    set(file_loc "file-NOTFOUND")
+    find_file(file_loc ${file})
+    if(file_loc)
+      install ( FILES ${file_loc}
+      DESTINATION bin
+      COMPONENT Runtime)
+    else()
+      message(WARNING "Dependent library, ${}, was not found.")
+    endif()
+  endforeach()
   # Add the required intel library.  This is permitted for redistribution.
   set ( INTELLIBPATH "$ENV{INTEL_DEV_REDIST}redist/intel64/compiler" )
   string ( REPLACE "\\" "/" INTELLIBPATH ${INTELLIBPATH} )
