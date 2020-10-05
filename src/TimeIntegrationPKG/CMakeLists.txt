@@ -10,6 +10,7 @@ set ( TimeIntegration_SOURCES
       ${CMAKE_CURRENT_SOURCE_DIR}/N_TIA_StepErrorControl.C 
       ${CMAKE_CURRENT_SOURCE_DIR}/N_TIA_TIAParams.C 
       ${CMAKE_CURRENT_SOURCE_DIR}/N_TIA_TimeIntegrationMethods.C 
+      ${CMAKE_CURRENT_SOURCE_DIR}/N_TIA_TwoLevelError.C
       ${CMAKE_CURRENT_SOURCE_DIR}/N_TIA_RegisterTimeIntegrationMethods.C 
       ${CMAKE_CURRENT_SOURCE_DIR}/N_TIA_WorkingIntegrationMethod.C 
       CACHE INTERNAL "X_S" )
