@@ -19,8 +19,7 @@ endif ( Xyce_RAD_MODELS )
 set ( CPACK_RESOURCE_FILE_README "${Xyce_SOURCE_DIR}/distribution/CPack.Description.txt" )
 
 # set packaging variables
-set ( Xyce_INSTALL_NAME "Xyce ${Xyce_VERSION_STRING_LONG}" )
-set ( CPACK_PACKAGE_NAME "${Xyce_INSTALL_NAME}" )  
+
 set ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Xyce Parallel Electronic Simulator" )
 set ( CPACK_PACKAGE_VENDOR "Sandia National Laboratories" )
 set ( CPACK_PACKAGE_VERSION_MAJOR "${Xyce_VERSION_MAJOR}" )
@@ -31,6 +30,9 @@ else ( Xyce_VERSION_PATCH)
   set ( CPACK_PACKAGE_VERSION_PATCH "0" )
 endif ( Xyce_VERSION_PATCH)
 
+set (Xyce_VERSION_STRING_LONG "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+set ( Xyce_INSTALL_NAME "Xyce ${Xyce_VERSION_STRING_LONG}" )
+set ( CPACK_PACKAGE_NAME "Xyce" )
 set ( CPACK_PACKAGE_INSTALL_DIRECTORY "${Xyce_INSTALL_NAME}" )
 
 # generator specific settings
