@@ -10,19 +10,49 @@ if(Xyce_USE_SUPERBUILD)
 
   # Version 3.5.0 required for Trilinos version
   # https://github.com/trilinos/Trilinos/issues/480
+  if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    set( DESIRED_BYTE_ORDER "Win64" )
+  else()
+    set( DESIRED_BYTE_ORDER "Win32" )
+  endif()
+  find_package(BLAS 3.5.0)
+  if(NOT BLAS_LIBRARIES)
+    set(BLAS_LIBRARY_LIST "")
+    message("No system libraries found. Downloading")
+    file(DOWNLOAD
+      "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/libblas.lib"
+      ${CMAKE_CURRENT_BINARY_DIR}/install/libblas.lib
+    )
+    file(DOWNLOAD
+    "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/libblas.dll"
+    ${CMAKE_CURRENT_BINARY_DIR}/install/libblas.dll
+    )
+    list(APPEND BLAS_LIBRARY_LIST
+      ${CMAKE_CURRENT_BINARY_DIR}/install/libblas.lib
+      ${CMAKE_CURRENT_BINARY_DIR}/install/libblas.dll
+    )
+    set(BLAS_LIBRARIES "${BLAS_LIBRARY_LIST}" CACHE STRING "List of BLAS libraries")
+  endif()
 
-  # On Windows:
-  # http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win64/liblapack.lib
-  # http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win64/libblas.lib
-  set(BLAS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake/lib)
-  find_package(BLAS 3.5.0
-    REQUIRED
-  )
-  set(LAPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake/lib)
-  find_package(LAPACK 3.5.0
-  REQUIRED
-  )
-
+  find_package(LAPACK 3.5.0)
+  if(NOT LAPACK_LIBRARIES)
+    set(LAPACK_LIBRARY_LIST)
+    message("No system libraries found. Downloading")
+    file(DOWNLOAD
+      "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.lib"
+      ${CMAKE_CURRENT_BINARY_DIR}/install/liblapack.lib
+    )
+    file(DOWNLOAD
+    "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.dll"
+    ${CMAKE_CURRENT_BINARY_DIR}/install/liblapack.dll
+    )
+    list(APPEND LAPACK_LIBRARY_LIST
+      ${CMAKE_CURRENT_BINARY_DIR}/install/liblapack.lib
+      ${CMAKE_CURRENT_BINARY_DIR}/install/liblapack.dll
+    )
+    message("Using LAPACK_LIBRARIES: ${LAPACK_LIBRARY_LIST}")
+    set(LAPACK_LIBRARIES ${LAPACK_LIBRARY_LIST} CACHE STRING "List of LAPACK libraries")
+endif()
   include(ExternalProject)
   set(DEPENDENCIES)
   set(TRILINOS_SERIAL_ARGS)
