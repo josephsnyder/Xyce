@@ -16,12 +16,12 @@ if(Xyce_USE_SUPERBUILD)
     set( DESIRED_BYTE_ORDER "Win32" )
   endif()
   set(BLAS_DEPS)
-
+  message(${CMAKE_PREFIX_PATH})
   set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR}/install)
 
   find_package(LAPACK 3.5.0)
   if(NOT LAPACK_LIBRARIES)
-    message("No system libraries found. Adding to LAPACK to list of projects")
+    message("No system libraries found. Download of LAPACK will occur at build time")
     ExternalProject_Add(LAPACKD
     URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.lib"
     DOWNLOAD_NO_EXTRACT ON
@@ -44,7 +44,7 @@ if(Xyce_USE_SUPERBUILD)
 
   find_package(BLAS 3.5.0)
   if(NOT BLAS_LIBRARIES)
-    message("No system libraries found. Adding to BLAS to list of projects")
+    message("No system libraries found. Download of BLAS will occur at build time")
 
     ExternalProject_Add(BLASD
     URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/libblas.lib"
