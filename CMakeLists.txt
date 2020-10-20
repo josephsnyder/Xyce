@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(Xyce_Superbuild VERSION 8.0.0 LANGUAGES CXX C)
 option(Xyce_USE_SUPERBUILD "Use superbuild to install Trilinos?"  )
 if(Xyce_USE_SUPERBUILD)
-
+  include(ExternalProject)
   find_package(Git)
   # Find specific folder locations
 
@@ -15,45 +15,60 @@ if(Xyce_USE_SUPERBUILD)
   else()
     set( DESIRED_BYTE_ORDER "Win32" )
   endif()
-  find_package(BLAS 3.5.0)
-  if(NOT BLAS_LIBRARIES)
-    set(BLAS_LIBRARY_LIST "")
-    message("No system libraries found. Downloading")
-    file(DOWNLOAD
-      "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/libblas.lib"
-      ${CMAKE_CURRENT_BINARY_DIR}/install/libblas.lib
-    )
-    file(DOWNLOAD
-    "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/libblas.dll"
-    ${CMAKE_CURRENT_BINARY_DIR}/install/libblas.dll
-    )
-    list(APPEND BLAS_LIBRARY_LIST
-      ${CMAKE_CURRENT_BINARY_DIR}/install/libblas.lib
-      ${CMAKE_CURRENT_BINARY_DIR}/install/libblas.dll
-    )
-    set(BLAS_LIBRARIES "${BLAS_LIBRARY_LIST}" CACHE STRING "List of BLAS libraries")
-  endif()
+  set(BLAS_DEPS)
+
+  set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR}/install)
 
   find_package(LAPACK 3.5.0)
   if(NOT LAPACK_LIBRARIES)
-    set(LAPACK_LIBRARY_LIST)
-    message("No system libraries found. Downloading")
-    file(DOWNLOAD
-      "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.lib"
-      ${CMAKE_CURRENT_BINARY_DIR}/install/liblapack.lib
+    message("No system libraries found. Adding to LAPACK to list of projects")
+    ExternalProject_Add(LAPACKD
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.lib"
+    DOWNLOAD_NO_EXTRACT ON
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../liblapack.lib ${CMAKE_LIBRARY_PATH}
     )
-    file(DOWNLOAD
-    "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.dll"
-    ${CMAKE_CURRENT_BINARY_DIR}/install/liblapack.dll
+    ExternalProject_Add(LAPACKR
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.dll"
+    DOWNLOAD_NO_EXTRACT ON
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../liblapack.dll ${CMAKE_LIBRARY_PATH}
     )
-    list(APPEND LAPACK_LIBRARY_LIST
-      ${CMAKE_CURRENT_BINARY_DIR}/install/liblapack.lib
-      ${CMAKE_CURRENT_BINARY_DIR}/install/liblapack.dll
+    list(APPEND BLAS_DEPS
+      LAPACKD
+      LAPACKR
     )
-    message("Using LAPACK_LIBRARIES: ${LAPACK_LIBRARY_LIST}")
-    set(LAPACK_LIBRARIES ${LAPACK_LIBRARY_LIST} CACHE STRING "List of LAPACK libraries")
-endif()
-  include(ExternalProject)
+    set(LAPACK_LIBRARIES ${CMAKE_LIBRARY_PATH}/liblapack.lib)
+
+  find_package(BLAS 3.5.0)
+  if(NOT BLAS_LIBRARIES)
+    message("No system libraries found. Adding to BLAS to list of projects")
+
+    ExternalProject_Add(BLASD
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/libblas.lib"
+    DOWNLOAD_NO_EXTRACT ON
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../libblas.lib ${CMAKE_LIBRARY_PATH}
+    )
+    ExternalProject_Add(BLASR
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/libblas.dll"
+    DOWNLOAD_NO_EXTRACT ON
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../libblas.dll ${CMAKE_LIBRARY_PATH}
+    )
+    list(APPEND BLAS_DEPS
+      BLASD
+      BLASR
+    )
+    set(BLAS_LIBRARIES ${CMAKE_LIBRARY_PATH}/libblas.lib)
+  endif()
+
+
+  endif()
   set(DEPENDENCIES)
   set(TRILINOS_SERIAL_ARGS)
   set(TRILINOS_PARALLEL_ARGS)
@@ -62,6 +77,7 @@ endif()
     -DCMAKE_PREFIX_PATH=${CMAKE_CURRENT_BINARY_DIR}/install
     -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/install
     -DGIT_EXEC=${GIT_EXECUTABLE}
+    -DCMAKE_LIBRARY_PATH=${CMAKE_LIBRARY_PATH}
   )
   list (APPEND TRILINOS_PARALLEL_ARGS
     ${DEFAULT_ARGS}
@@ -166,7 +182,7 @@ endif()
 
   list(APPEND DEPENDENCIES "Trilinos")
   ExternalProject_Add(Trilinos
-    DEPENDS suitesparse
+    DEPENDS suitesparse ${BLAS_DEPS}
     INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/install
     GIT_REPOSITORY https://github.com/Trilinos/Trilinos
     GIT_TAG trilinos-release-12-12-1
