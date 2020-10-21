@@ -114,8 +114,6 @@ if(Xyce_USE_SUPERBUILD)
   )
   list (APPEND TRILINOS_SERIAL_ARGS
     ${DEFAULT_ARGS}
-     -DCMAKE_PREFIX_PATH=${CMAKE_CURRENT_BINARY_DIR}/install
-     -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/install
     -DTrilinos_ENABLE_NOX=ON
       -DNOX_ENABLE_LOCA=ON
     -DTrilinos_ENABLE_EpetraExt=ON
@@ -183,7 +181,6 @@ if(Xyce_USE_SUPERBUILD)
   list(APPEND DEPENDENCIES "Trilinos")
   ExternalProject_Add(Trilinos
     DEPENDS suitesparse ${BLAS_DEPS}
-    INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/install
     GIT_REPOSITORY https://github.com/Trilinos/Trilinos
     GIT_TAG trilinos-release-12-12-1
     GIT_SHALLOW True
@@ -195,10 +192,9 @@ if(Xyce_USE_SUPERBUILD)
     DEPENDS ${DEPENDENCIES}
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
     CMAKE_ARGS -DXyce_USE_SUPERBUILD=OFF
-       -DCMAKE_PREFIX_PATH=${CMAKE_CURRENT_BINARY_DIR}/install
-       -DFLEX_INCLUDE_DIR=/usr/include/
+       ${DEFAULT_ARGS}
     INSTALL_COMMAND ""
-    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+  )
 else()
   # Xyce should use the same compilers as Trilinos. Therefore, Trilinos must be
   # loaded before "project" is called.
