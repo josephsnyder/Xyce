@@ -5,65 +5,72 @@ find_package(Git)
 # Version 3.5.0 required for Trilinos version
 # https://github.com/trilinos/Trilinos/issues/480
 if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-  set( DESIRED_BYTE_ORDER "Win64" )
+  set( DESIRED_BYTE_ORDER "64" )
 else()
-  set( DESIRED_BYTE_ORDER "Win32" )
+  set( DESIRED_BYTE_ORDER "32" )
 endif()
-set(BLAS_DEPS)
 
+set(BLAS_DEPS)
 set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR}/install)
 
+if(DEFINED ENV{MKLROOT})
+  set(BLA_VENDOR Intel10_64lp)
+
+endif()
+
 find_package(LAPACK 3.5.0)
-if(NOT LAPACK_LIBRARIES and WIN32)
-  message("No system libraries found. Download of LAPACK will occur at build time")
-  ExternalProject_Add(LAPACKD
-  URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.lib"
-  DOWNLOAD_NO_EXTRACT ON
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../liblapack.lib ${CMAKE_LIBRARY_PATH}
-  )
-  ExternalProject_Add(LAPACKR
-  URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.dll"
-  DOWNLOAD_NO_EXTRACT ON
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../liblapack.dll ${CMAKE_LIBRARY_PATH}
-  )
-  list(APPEND BLAS_DEPS
-    LAPACKD
-    LAPACKR
-  )
-  set(LAPACK_LIBRARIES ${CMAKE_LIBRARY_PATH}/liblapack.lib)
+if(NOT LAPACK_LIBRARIES)
+  if(WIN32)
+    message("No system libraries found. Download of LAPACK will occur at build time")
+    ExternalProject_Add(LAPACKD
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${DESIRED_BYTE_ORDER}/liblapack.lib"
+    DOWNLOAD_NO_EXTRACT ON
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../liblapack.lib ${CMAKE_LIBRARY_PATH}
+    )
+    ExternalProject_Add(LAPACKR
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${DESIRED_BYTE_ORDER}/liblapack.dll"
+    DOWNLOAD_NO_EXTRACT ON
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../liblapack.dll ${CMAKE_LIBRARY_PATH}
+    )
+    list(APPEND BLAS_DEPS
+      LAPACKD
+      LAPACKR
+    )
+    set(LAPACK_LIBRARIES ${CMAKE_LIBRARY_PATH}/liblapack.lib)
+  endif()
 endif()
 
 find_package(BLAS 3.5.0)
-if(NOT BLAS_LIBRARIES and WIN32)
-  message("No system libraries found. Download of BLAS will occur at build time")
+if(NOT BLAS_LIBRARIES)
+  if(WIN32)
+    message("No system libraries found. Download of BLAS will occur at build time")
 
-  ExternalProject_Add(BLASD
-  URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/libblas.lib"
-  DOWNLOAD_NO_EXTRACT ON
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../libblas.lib ${CMAKE_LIBRARY_PATH}
-  )
-  ExternalProject_Add(BLASR
-  URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/libblas.dll"
-  DOWNLOAD_NO_EXTRACT ON
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../libblas.dll ${CMAKE_LIBRARY_PATH}
-  )
-  list(APPEND BLAS_DEPS
-    BLASD
-    BLASR
-  )
-  set(BLAS_LIBRARIES ${CMAKE_LIBRARY_PATH}/libblas.lib)
+    ExternalProject_Add(BLASD
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${DESIRED_BYTE_ORDER}/libblas.lib"
+    DOWNLOAD_NO_EXTRACT ON
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../libblas.lib ${CMAKE_LIBRARY_PATH}
+    )
+    ExternalProject_Add(BLASR
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${DESIRED_BYTE_ORDER}/libblas.dll"
+    DOWNLOAD_NO_EXTRACT ON
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../libblas.dll ${CMAKE_LIBRARY_PATH}
+    )
+    list(APPEND BLAS_DEPS
+      BLASD
+      BLASR
+    )
+    set(BLAS_LIBRARIES ${CMAKE_LIBRARY_PATH}/libblas.lib)
+  endif()
 endif()
 
-
-endif()
 set(DEPENDENCIES)
 set(TRILINOS_SERIAL_ARGS)
 set(TRILINOS_PARALLEL_ARGS)
@@ -74,6 +81,9 @@ list(APPEND DEFAULT_ARGS
   -DGIT_EXEC=${GIT_EXECUTABLE}
   -DCMAKE_LIBRARY_PATH=${CMAKE_LIBRARY_PATH}
 )
+
+set(Xyce_ARGS ${DEFAULT_ARGS} -DXyce_USE_SUPERBUILD=OFF)
+
 list (APPEND TRILINOS_PARALLEL_ARGS
   ${DEFAULT_ARGS}
   -DTrilinos_ENABLE_NOX=ON
@@ -161,6 +171,29 @@ if(WIN32)
 
 endif(WIN32)
 
+option(Xyce_USE_FFTW ON "Use FFTW")
+if(Xyce_USE_FFTW)
+  find_library(fftw
+    names libfftw3-3
+    PATH_SUFFIXES "lib" "lib64"
+  )
+  if(Win32)
+    if(NOT fftw_LIBRARIES)
+      ExternalProject_Add(FFTW
+      URL "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.5-dll${DESIRED_BYTE_ORDER}.zip"
+      BUILD_IN_SOURCE TRUE
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND lib /def:libfftw3f-3.def && lib /def:libfftw3-3.def && lib /def:libfftw3l-3.def
+      INSTALL_COMMAND ""
+      )
+      ExternalProject_Get_property(FFTW SOURCE_DIR)
+      list(APPEND CMAKE_PREFIX_PATH ${SOURCE_DIR})
+      list(APPEND Xyce_ARGS -DFFTW_INCLUDE_DIRS=${SOURCE_DIR})
+    endif()
+  endif()
+endif()
+
+
 list(APPEND DEPENDENCIES "suitesparse")
 ExternalProject_Add(suitesparse
   INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/install
@@ -170,8 +203,6 @@ ExternalProject_Add(suitesparse
   PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Patch_suitesparse.cmake <SOURCE_DIR>/CMakeLists.txt
   CMAKE_ARGS ${DEFAULT_ARGS}
 )
-#list(APPEND DEPENDENCIES "boost")
-#include(cmake/External_Boost)
 
 list(APPEND DEPENDENCIES "Trilinos")
 ExternalProject_Add(Trilinos
@@ -186,7 +217,6 @@ ExternalProject_Add(Trilinos
 ExternalProject_Add (Xyce
   DEPENDS ${DEPENDENCIES}
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
-  CMAKE_ARGS -DXyce_USE_SUPERBUILD=OFF
-     ${DEFAULT_ARGS}
+  CMAKE_ARGS ${Xyce_ARGS}
   INSTALL_COMMAND ""
 )
