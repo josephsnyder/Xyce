@@ -14,7 +14,7 @@ set(BLAS_DEPS)
 set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR}/install)
 
 find_package(LAPACK 3.5.0)
-if(NOT LAPACK_LIBRARIES)
+if(NOT LAPACK_LIBRARIES and WIN32)
   message("No system libraries found. Download of LAPACK will occur at build time")
   ExternalProject_Add(LAPACKD
   URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/${DESIRED_BYTE_ORDER}/liblapack.lib"
@@ -35,9 +35,10 @@ if(NOT LAPACK_LIBRARIES)
     LAPACKR
   )
   set(LAPACK_LIBRARIES ${CMAKE_LIBRARY_PATH}/liblapack.lib)
+endif()
 
 find_package(BLAS 3.5.0)
-if(NOT BLAS_LIBRARIES)
+if(NOT BLAS_LIBRARIES and WIN32)
   message("No system libraries found. Download of BLAS will occur at build time")
 
   ExternalProject_Add(BLASD
