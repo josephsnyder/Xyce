@@ -177,8 +177,9 @@ if(Xyce_USE_FFTW)
     names libfftw3-3
     PATH_SUFFIXES "lib" "lib64"
   )
-  if(Win32)
+  if(WIN32)
     if(NOT fftw_LIBRARIES)
+      list(APPEND DEPENDENCIES FFTW)
       ExternalProject_Add(FFTW
       URL "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.5-dll${DESIRED_BYTE_ORDER}.zip"
       BUILD_IN_SOURCE TRUE
@@ -188,7 +189,7 @@ if(Xyce_USE_FFTW)
       )
       ExternalProject_Get_property(FFTW SOURCE_DIR)
       list(APPEND CMAKE_PREFIX_PATH ${SOURCE_DIR})
-      list(APPEND Xyce_ARGS -DFFTW_INCLUDE_DIRS=${SOURCE_DIR})
+      list(APPEND Xyce_ARGS -DFFTW_ROOT=${SOURCE_DIR})
     endif()
   endif()
 endif()
