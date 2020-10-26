@@ -5,9 +5,9 @@ find_package(Git)
 # Version 3.5.0 required for Trilinos version
 # https://github.com/trilinos/Trilinos/issues/480
 if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-  set( DESIRED_BYTE_ORDER "64" )
+  set( POINTER_SIZE  "64" )
 else()
-  set( DESIRED_BYTE_ORDER "32" )
+  set( POINTER_SIZE "32" )
 endif()
 
 set(BLAS_DEPS)
@@ -28,14 +28,14 @@ if(NOT LAPACK_LIBRARIES)
   if(WIN32)
     message("No system libraries found. Download of LAPACK will occur at build time")
     ExternalProject_Add(LAPACKD
-    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${DESIRED_BYTE_ORDER}/liblapack.lib"
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${POINTER_SIZE}/liblapack.lib"
     DOWNLOAD_NO_EXTRACT ON
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../liblapack.lib ${CMAKE_LIBRARY_PATH}
     )
     ExternalProject_Add(LAPACKR
-    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${DESIRED_BYTE_ORDER}/liblapack.dll"
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${POINTER_SIZE}/liblapack.dll"
     DOWNLOAD_NO_EXTRACT ON
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -55,14 +55,14 @@ if(NOT BLAS_LIBRARIES)
     message("No system libraries found. Download of BLAS will occur at build time")
 
     ExternalProject_Add(BLASD
-    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${DESIRED_BYTE_ORDER}/libblas.lib"
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${POINTER_SIZE}/libblas.lib"
     DOWNLOAD_NO_EXTRACT ON
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../libblas.lib ${CMAKE_LIBRARY_PATH}
     )
     ExternalProject_Add(BLASR
-    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${DESIRED_BYTE_ORDER}/libblas.dll"
+    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${POINTER_SIZE}/libblas.dll"
     DOWNLOAD_NO_EXTRACT ON
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -191,7 +191,7 @@ if(Xyce_USE_FFTW)
     if(NOT fftw_LIBRARIES)
       list(APPEND DEPENDENCIES FFTW)
       ExternalProject_Add(FFTW
-      URL "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.5-dll${DESIRED_BYTE_ORDER}.zip"
+      URL "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.5-dll${POINTER_SIZE}.zip"
       BUILD_IN_SOURCE TRUE
       CONFIGURE_COMMAND ""
       BUILD_COMMAND lib /def:libfftw3f-3.def && lib /def:libfftw3-3.def && lib /def:libfftw3l-3.def
