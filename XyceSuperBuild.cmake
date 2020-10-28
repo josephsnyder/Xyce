@@ -13,9 +13,7 @@ endif()
 set(BLAS_DEPS)
 set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR}/install)
 
-if(DEFINED ENV{MKLROOT})
-  set(BLA_VENDOR Intel10_64lp)
-endif()
+
 
 # Lifted from KWIVER
 # Don't force a build type in mutli-configuration platforms
@@ -23,56 +21,19 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
+if(DEFINED ENV{MKLROOT})
+  set(BLA_VENDOR Intel10_64ilp_seq)
+endif()
 find_package(LAPACK 3.5.0)
+
 if(NOT LAPACK_LIBRARIES)
   if(WIN32)
-    message("No system libraries found. Download of LAPACK will occur at build time")
-    ExternalProject_Add(LAPACKD
-    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${POINTER_SIZE}/liblapack.lib"
-    DOWNLOAD_NO_EXTRACT ON
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../liblapack.lib ${CMAKE_LIBRARY_PATH}
-    )
-    ExternalProject_Add(LAPACKR
-    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${POINTER_SIZE}/liblapack.dll"
-    DOWNLOAD_NO_EXTRACT ON
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../liblapack.dll ${CMAKE_LIBRARY_PATH}
-    )
-    list(APPEND BLAS_DEPS
-      LAPACKD
-      LAPACKR
-    )
-    set(LAPACK_LIBRARIES ${CMAKE_LIBRARY_PATH}/liblapack.lib)
-  endif()
-endif()
+    message(FATAL_ERROR "On Windows, the BLAS and LAPACK libraries should be installed via the
+    Math Kernel Library set of objects from Intel
+        https://software.intel.com/content/www/us/en/develop/tools/math-kernel-library/choose-download.html
 
-find_package(BLAS 3.5.0)
-if(NOT BLAS_LIBRARIES)
-  if(WIN32)
-    message("No system libraries found. Download of BLAS will occur at build time")
-
-    ExternalProject_Add(BLASD
-    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${POINTER_SIZE}/libblas.lib"
-    DOWNLOAD_NO_EXTRACT ON
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../libblas.lib ${CMAKE_LIBRARY_PATH}
-    )
-    ExternalProject_Add(BLASR
-    URL "http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.5.0/Dynamic-MINGW/Win${POINTER_SIZE}/libblas.dll"
-    DOWNLOAD_NO_EXTRACT ON
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../libblas.dll ${CMAKE_LIBRARY_PATH}
-    )
-    list(APPEND BLAS_DEPS
-      BLASD
-      BLASR
-    )
-    set(BLAS_LIBRARIES ${CMAKE_LIBRARY_PATH}/libblas.lib)
+    Install the software and then set the environment variable 'MKLROOT' to the directory where the MKL software
+    can be found.  A typical path may be something like: C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl")
   endif()
 endif()
 
@@ -92,7 +53,9 @@ list(APPEND DEFAULT_ARGS
   -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
 )
 
-set(Xyce_ARGS ${DEFAULT_ARGS} -DXyce_USE_SUPERBUILD=OFF)
+set(Xyce_ARGS ${DEFAULT_ARGS}
+  -DXyce_USE_SUPERBUILD=OFF
+  )
 
 list (APPEND TRILINOS_PARALLEL_ARGS
   ${DEFAULT_ARGS}
