@@ -92,6 +92,13 @@ if(WIN32)
               $ENV{MKLROOT}/../redist/intel${POINTER_SIZE}/mkl/mkl_sequential.dll
               ${CMAKE_CURRENT_BINARY_DIR})
   endif()
+  if(Xyce_USE_FFTW)
+    add_custom_command(
+      TARGET Xyce POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              ${FFT}
+              ${CMAKE_CURRENT_BINARY_DIR})
+  endif()
 endif()
 
 
