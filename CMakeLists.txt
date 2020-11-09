@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(Xyce_Superbuild VERSION 8.0.0 LANGUAGES CXX C)
 option(Xyce_USE_SUPERBUILD "Use superbuild to install Trilinos?"  )
 if(Xyce_USE_SUPERBUILD)
   include("XyceSuperBuild.cmake")
